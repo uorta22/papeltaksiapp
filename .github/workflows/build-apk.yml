@@ -33,6 +33,12 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
 
+    - name: Verify Gradle Wrapper Version
+      run: |
+        cd android
+        ./gradlew --version
+        cd ..
+
     - name: Analyze code
       run: flutter analyze
       continue-on-error: true
