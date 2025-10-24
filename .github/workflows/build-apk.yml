@@ -33,6 +33,16 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
 
+    - name: Pre-build setup (generate Gradle wrapper)
+      run: |
+        cd android
+        if [ ! -f gradlew ]; then
+          echo "Generating Gradle wrapper..."
+          gradle wrapper --gradle-version 8.3
+        fi
+        chmod +x gradlew || true
+        cd ..
+
     - name: Analyze code
       run: flutter analyze
       continue-on-error: true
