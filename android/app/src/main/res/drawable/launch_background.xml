@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Papel Taksi Launch Background -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background color -->
+    <item android:drawable="@android:color/white" />
+
+    <!-- Optional: Add a logo in the center -->
+    <!-- Uncomment and add your logo when ready
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/logo" />
+    </item>
+    -->
+</layer-list>
