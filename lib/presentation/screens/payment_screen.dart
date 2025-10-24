@@ -11,15 +11,30 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   String _displayAmount = '0,00';
-  final List<String> _quickAmounts = ['50', '100', '150', '200', '250', '300'];
+  double _tripAmount = 0.0;
+  double _serviceFee = 0.0;
+  double _totalAmount = 0.0;
 
   @override
   void dispose() {
     _amountController.dispose();
     super.dispose();
+  }
+
+  double _calculateServiceFee(double tripAmount) {
+    if (tripAmount < 1.01) {
+      return 0.0;
+    }
+    // Minimum 8 TL hizmet bedeli, yolculuk tutarının %10'u (hangisi büyükse)
+    return tripAmount * 0.10 < 8.0 ? 8.0 : tripAmount * 0.10;
+  }
+
+  void _updateAmounts() {
+    _tripAmount = double.tryParse(_amountController.text) ?? 0.0;
+    _serviceFee = _calculateServiceFee(_tripAmount);
+    _totalAmount = _tripAmount + _serviceFee;
   }
 
   void _onNumberPressed(String number) {
@@ -42,6 +57,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final formatter = NumberFormat('#,##0.00', 'tr_TR');
       _displayAmount = formatter.format(doubleValue);
       _amountController.text = doubleValue.toString();
+      _updateAmounts();
     });
   }
 
@@ -52,6 +68,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (currentValue.length <= 3) {
         _displayAmount = '0,00';
         _amountController.text = '0';
+        _updateAmounts();
         return;
       }
 
@@ -62,38 +79,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final formatter = NumberFormat('#,##0.00', 'tr_TR');
       _displayAmount = formatter.format(doubleValue);
       _amountController.text = doubleValue.toString();
-    });
-  }
-
-  void _setQuickAmount(String amount) {
-    setState(() {
-      final doubleValue = double.parse(amount);
-      final formatter = NumberFormat('#,##0.00', 'tr_TR');
-      _displayAmount = formatter.format(doubleValue);
-      _amountController.text = doubleValue.toString();
+      _updateAmounts();
     });
   }
 
   void _handlePayment() {
-    final amount = double.tryParse(_amountController.text) ?? 0;
-
-    if (amount <= 0) {
+    if (_tripAmount < 1.01) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Lütfen geçerli bir tutar girin'),
+          content: Text('Yolculuk tutarı en az 1,01 TL olmalıdır'),
           backgroundColor: AppColors.error,
         ),
       );
       return;
     }
 
-    // TODO: Implement SoftPOS deeplink
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Ödeme Onayı'),
-        content: Text(
-          'Ödeme tutarı: ₺${_displayAmount}\n\nSoftPOS uygulamasına yönlendirileceksiniz.',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSummaryRow('Yolculuk Tutarı:', _tripAmount),
+            const SizedBox(height: 8),
+            _buildSummaryRow('Hizmet Tutarı:', _serviceFee),
+            const Divider(height: 24),
+            _buildSummaryRow('Toplam:', _totalAmount, isBold: true),
+            const SizedBox(height: 16),
+            const Text(
+              'SoftPOS uygulamasına yönlendirileceksiniz.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -109,6 +128,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, double amount, {bool isBold = false}) {
+    final formatter = NumberFormat.currency(locale: 'tr_TR', symbol: '₺');
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: isBold ? 16 : 14,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          formatter.format(amount),
+          style: TextStyle(
+            fontSize: isBold ? 16 : 14,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            color: isBold ? AppColors.accent : AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 
@@ -136,6 +179,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _showPaymentSuccess() {
+    final formatter = NumberFormat.currency(locale: 'tr_TR', symbol: '₺');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -165,11 +210,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              '₺$_displayAmount',
+              formatter.format(_totalAmount),
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.accent,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  _buildSmallSummaryRow('Yolculuk', _tripAmount),
+                  const SizedBox(height: 4),
+                  _buildSmallSummaryRow('Hizmet', _serviceFee),
+                ],
               ),
             ),
           ],
@@ -187,60 +247,164 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildSmallSummaryRow(String label, double amount) {
+    final formatter = NumberFormat.currency(locale: 'tr_TR', symbol: '₺');
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        Text(
+          formatter.format(amount),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(locale: 'tr_TR', symbol: '₺');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ödeme Al'),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Amount Display
+                    // Yolculuk Tutarı
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Yolculuk Tutarı:',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '₺$_displayAmount',
+                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accent,
+                                fontSize: 42,
+                              ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Hizmet ve Toplam Bilgileri
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
+                        color: AppColors.backgroundSecondary,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1,
+                        ),
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'Tutar',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          // Hizmet Tutarı
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 12),
-                                child: Text(
-                                  '₺',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w500,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.receipt_long,
+                                    size: 20,
+                                    color: AppColors.textSecondary,
                                   ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Hizmet Tutarı',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                formatter.format(_serviceFee),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _displayAmount,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 48,
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Info Text
+                          if (_serviceFee > 0)
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.info.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: const [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 14,
+                                    color: AppColors.info,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Minimum hizmet bedeli 8 TL',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.info,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const Divider(height: 24),
+
+                          // Toplam
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'TOPLAM',
+                                style: TextStyle(
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              Text(
+                                formatter.format(_totalAmount),
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.accent,
                                 ),
                               ),
                             ],
@@ -248,44 +412,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // Quick Amount Buttons
-                    Text(
-                      'Hızlı Tutarlar',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _quickAmounts.map((amount) {
-                        return InkWell(
-                          onTap: () => _setQuickAmount(amount),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.backgroundSecondary,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: Text(
-                              '₺$amount',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -299,6 +425,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -315,6 +448,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: _handlePayment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                      ),
                       child: const Text(
                         'Ödemeyi Başlat',
                         style: TextStyle(

@@ -13,6 +13,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
+        fetch-depth: 1
+
+    - name: Debug - Show pubspec.yaml
+      run: cat pubspec.yaml | tail -20
 
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -25,13 +31,24 @@ jobs:
       with:
         flutter-version: '3.24.0'
         channel: 'stable'
-        cache: true
+        cache: false
 
-    - name: Clean Flutter build
-      run: flutter clean
+    - name: Clean Flutter build (aggressive)
+      run: |
+        flutter clean
+        rm -rf build/
+        rm -rf .dart_tool/
+        rm -rf .packages
+        flutter pub cache clean -f || true
 
     - name: Get dependencies
       run: flutter pub get
+
+    - name: Verify Gradle Wrapper Version
+      run: |
+        cd android
+        ./gradlew --version
+        cd ..
 
     - name: Analyze code
       run: flutter analyze
