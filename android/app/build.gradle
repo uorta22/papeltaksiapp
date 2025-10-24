@@ -24,8 +24,7 @@ plugins {
 
 android {
     namespace "com.papel.taksi"
-    compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    compileSdk 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -42,8 +41,8 @@ android {
 
     defaultConfig {
         applicationId "com.papel.taksi"
-        minSdkVersion 24
-        targetSdkVersion 34
+        minSdk 24
+        targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -76,7 +75,7 @@ android {
         }
     }
 
-    flavorDimensions "environment"
+    flavorDimensions = ["environment"]
     productFlavors {
         dev {
             dimension "environment"
@@ -95,5 +94,5 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10"
 }
