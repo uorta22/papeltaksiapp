@@ -37,8 +37,8 @@ jobs:
       run: |
         cd android
         if [ ! -f gradlew ]; then
-          echo "Generating Gradle wrapper..."
-          gradle wrapper --gradle-version 8.3
+          echo "Generating Gradle wrapper with version 7.6..."
+          gradle wrapper --gradle-version 7.6.4 --distribution-type all
         fi
         chmod +x gradlew || true
         cd ..
