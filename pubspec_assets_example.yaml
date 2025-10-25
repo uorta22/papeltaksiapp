@@ -1,0 +1,49 @@
+# Bu dosya, pubspec.yaml'ınıza assets eklemek için bir örnektir
+# Aşağıdaki satırları kopyalayıp pubspec.yaml'ınıza ekleyin
+
+flutter:
+  uses-material-design: true
+
+  # GÖRSELLER VE ASSETS
+  # Not: Dosyaları ekledikten sonra 'flutter pub get' komutunu çalıştırın
+  assets:
+    # Genel görseller
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+
+    # Eğer belirli dosyalar eklemek isterseniz:
+    # - assets/images/logo.png
+    # - assets/images/logo_white.png
+    # - assets/images/card_background.png
+    # - assets/icons/taxi.svg
+    # - assets/animations/payment_success.json
+
+  # ÖZEL FONTLAR (Opsiyonel)
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600
+
+# ÖNERİLEN PAKETLER
+# Aşağıdaki paketleri dependencies bölümüne ekleyebilirsiniz:
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Mevcut paketler
+  flutter_riverpod: ^2.4.0
+  intl: ^0.19.0
+
+  # Animasyon ve görsel paketleri (eklemek isterseniz)
+  lottie: ^3.0.0                    # Lottie animasyonları için
+  flutter_svg: ^2.0.9               # SVG ikon desteği için
+  cached_network_image: ^3.3.0      # Network görsellerini cache'lemek için
+  shimmer: ^3.0.0                   # Shimmer loading efekti için
+  animations: ^2.0.8                # Gelişmiş sayfa geçişleri için
+  flutter_animate: ^4.3.0           # Kolay animasyonlar için
