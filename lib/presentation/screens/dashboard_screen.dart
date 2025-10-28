@@ -700,7 +700,7 @@ class _TransactionsTabState extends State<_TransactionsTab> {
                 _SummaryItem(
                   label: 'Bu Hafta',
                   value: formatter.format(805.50),
-                  icon: Icons.calendar_week,
+                  icon: Icons.date_range,
                 ),
                 Container(width: 1, height: 40, color: AppColors.border),
                 _SummaryItem(
