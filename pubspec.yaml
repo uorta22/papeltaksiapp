@@ -73,6 +73,23 @@ dev_dependencies:
   retrofit_generator: ^8.0.6
   hive_generator: ^2.0.1
 
+  # Launcher Icons
+  flutter_launcher_icons: ^0.13.1
+
 flutter:
   uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+
+# Launcher Icons Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/papel_logo.png"  # 512x512 PNG logo ekleyin
+  adaptive_icon_background: "#373B49"  # Papel primary color
+  adaptive_icon_foreground: "assets/images/papel_logo.png"
 

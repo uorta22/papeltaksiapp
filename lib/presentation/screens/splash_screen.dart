@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:papeltaksi/core/constants/app_colors.dart';
 import 'package:papeltaksi/presentation/screens/login_screen.dart';
 
@@ -78,18 +79,14 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Logo Placeholder
-                      Container(
+                      // Papel Logo (SVG)
+                      SvgPicture.asset(
+                        'assets/icons/papel_logo.svg',
                         width: 120,
                         height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Icon(
-                          Icons.local_taxi,
-                          size: 64,
-                          color: Colors.white,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
                         ),
                       ),
                       const SizedBox(height: 32),
